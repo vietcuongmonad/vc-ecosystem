@@ -15,13 +15,7 @@ contract VC_Token is IERC20 {
 
     mapping(address => uint) private _balance;    
     
-    mapping(address => mapping(address => uint)) private _allowance;  
-
-    // require(bool condition): abort execution and revert state changes if condition is false (use for malformed ~weird~ input)
-    modifier _onlyOwner_() {    // modifier: for checking condition before execute
-        require(msg.sender == _owner, "ERR_NOT_OWNER");
-        _; // continue to execute body of other functions using this modifier
-    }
+    mapping(address => mapping(address => uint)) private _allowance;
 
     /*
         SafeMath: check to avoid overflow 
@@ -53,9 +47,8 @@ contract VC_Token is IERC20 {
 
         private - can be accessed only from this contract
     */
-    constructor(uint initialSupply) public {
+    constructor() public {
         _owner = msg.sender;
-        _mint(msg.sender, initialSupply);
     }
 
     function _transfer(address sender, address receipient, uint amount) internal {

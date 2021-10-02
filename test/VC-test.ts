@@ -14,10 +14,4 @@ describe("VCT-Market", function () {
     // @ts-ignore
     [operator, minter, bob, carol, david] = await ethers.getSigners();
   });
-
-  it("Should return the correct answer", async function () {
-        
-    const VCTToken = await ethers.getContractFactory("VCTToken");
-    const a_vcttoken = await VCTToken.deploy("", "$$", 18);
-  });
 });
