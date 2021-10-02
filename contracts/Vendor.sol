@@ -3,8 +3,8 @@ pragma solidity ^0.8.0;
 import "./IERC20.sol";
 
 contract Vendor {
-    address private _myVCTAddress;
-    address private _myBUSDAddress;
+    address private _VCT;
+    address private _BUSDToken;
     address payable private _myBNBWallet;
     address private _myCommisionAddress; // in VCT
 
@@ -18,9 +18,9 @@ contract Vendor {
     event Sold_By_BUSD(address seller, uint amt_VCT, uint amt_BUSD);
     event Sold_By_BNB(address seller, uint amt_VCT, uint amt_BNB);
 
-    constructor(address myVCTAddress, address myBUSDAddress, address payable myBNBWallet) public {
-        _myVCTAddress = myVCTAddress;
-        _myBUSDAddress = myBUSDAddress;
+    constructor(address VCT, address BUSD_Token, address payable myBNBWallet) public {
+        _VCT = VCT;
+        _BUSDToken = BUSD_Token;
         _myBNBWallet = myBNBWallet;
     }
 
@@ -30,15 +30,15 @@ contract Vendor {
         require(BUSD_Amount > 0, "You need to have some BUSD");
 
         uint VCT_amt_buy = BUSD_Amount * BUSD_to_VCT;
-        uint vendorVCTBalance = IERC20(_myVCTAddress).balanceOf(_myVCTAddress);
+        uint vendorVCTBalance = IERC20(_VCT).balanceOf(_VCT);
         
         require(vendorVCTBalance >= VCT_amt_buy, "Not enough VCT in the fund");
         
         // Transfer token to msg.sender
-        require(IERC20(_myVCTAddress).transfer(msg.sender, VCT_amt_buy), "Failed to transfer VCT to user");
+        require(IERC20(_VCT).transfer(msg.sender, VCT_amt_buy), "Failed to transfer VCT to user");
 
         // Transfer token to vendor
-        require(IERC20(_myBUSDAddress).transferFrom(msg.sender, _myVCTAddress, BUSD_Amount), "Failed to transfer BUSD to vendor");
+        require(IERC20(_BUSDToken).transferFrom(msg.sender, _VCT, BUSD_Amount), "Failed to transfer BUSD to vendor");
 
         emit Bought_By_BUSD(msg.sender, BUSD_Amount, VCT_amt_buy);
         return true;
@@ -48,18 +48,18 @@ contract Vendor {
     function sellToBUSD(uint VCT_amount) external returns (bool) {
         require (VCT_amount > 0, "Selling VCT amount must be > 0");
 
-        uint userBalance = IERC20(_myVCTAddress).balanceOf(msg.sender);
+        uint userBalance = IERC20(_VCT).balanceOf(msg.sender);
         require (userBalance >= VCT_amount, "User VCT balance < amount you want to sell");
 
         uint BUSD_amt_transfer = VCT_amount * ((100 - feeRate) / 100) / BUSD_to_VCT;
-        uint vendorBUSDBalance = IERC20(_myBUSDAddress).balanceOf(_myBUSDAddress);
+        uint vendorBUSDBalance = IERC20(_BUSDToken).balanceOf(_BUSDToken);
         require(vendorBUSDBalance >= BUSD_amt_transfer, "Vendor has not enough BUSD in the funds");
 
         //Transfer BUSD to msg.sender
-        require(IERC20(_myBUSDAddress).transfer(msg.sender, BUSD_amt_transfer), "Failed to transfer BUSD to user");
+        require(IERC20(_BUSDToken).transfer(msg.sender, BUSD_amt_transfer), "Failed to transfer BUSD to user");
 
         //Transfer VCT to vendor
-        require(IERC20(_myBUSDAddress).transferFrom(msg.sender, _myBUSDAddress, VCT_amount), "Failed to transfer VCT to vendor");
+        require(IERC20(_BUSDToken).transferFrom(msg.sender, _BUSDToken, VCT_amount), "Failed to transfer VCT to vendor");
 
         uint commisionFee = VCT_amount * feeRate / 100;
         require(IERC20(_myCommisionAddress).transfer(_myCommisionAddress, commisionFee));
@@ -73,12 +73,12 @@ contract Vendor {
         require(msg.value > 0, "You need to have some BNB");
 
         uint VCT_amt_buy = msg.value * BNB_to_VCT;
-        uint vendorVCTBalance = IERC20(_myVCTAddress).balanceOf(_myVCTAddress);
+        uint vendorVCTBalance = IERC20(_VCT).balanceOf(_VCT);
 
         require (vendorVCTBalance >= VCT_amt_buy, "Not enough VCT in the fund");
 
         // Transfer VCT to msg.sender
-        require(IERC20(_myVCTAddress).transfer(msg.sender, VCT_amt_buy), "Failed to transfer VCT to user");
+        require(IERC20(_VCT).transfer(msg.sender, VCT_amt_buy), "Failed to transfer VCT to user");
 
         // Transfer BNB to vendor
         _myBNBWallet.transfer(msg.value);
@@ -91,7 +91,7 @@ contract Vendor {
     function sellToBNB() public payable returns (bool) {
         require (msg.value > 0, "Selling VCT amount must be > 0");
 
-        uint userBalance = IERC20(_myVCTAddress).balanceOf(msg.sender);
+        uint userBalance = IERC20(_VCT).balanceOf(msg.sender);
         require (userBalance >= msg.value, "User VCT balance < amount you want to sell");
 
         uint BNB_amt_transfer = msg.value * ((100 - feeRate) / 100) / BNB_to_VCT;
@@ -102,7 +102,7 @@ contract Vendor {
         require(_myBNBWallet.transfer(msg.sender, BNB_amt_transfer), "Failed to transfer BNB to user");
 
         //Transfer VCT to vendor
-        require(IERC20(_myVCTAddress).transferFrom(msg.sender, _myVCTAddress, msg.value), "Failed to transfer VCT to vendor");
+        require(IERC20(_VCT).transferFrom(msg.sender, _VCT, msg.value), "Failed to transfer VCT to vendor");
 
         uint commisionFee = msg.value * feeRate / 100;
         require(IERC20(_myCommisionAddress).transfer(_myCommisionAddress, commisionFee));
